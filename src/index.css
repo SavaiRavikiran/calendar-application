@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fc-border-color: theme('colors.gray.200');
+  --fc-button-text-color: theme('colors.gray.700');
+  --fc-button-bg-color: theme('colors.white');
+  --fc-button-border-color: theme('colors.gray.300');
+  --fc-button-hover-bg-color: theme('colors.gray.100');
+  --fc-button-hover-border-color: theme('colors.gray.400');
+  --fc-button-active-bg-color: theme('colors.gray.200');
+  --fc-today-bg-color: theme('colors.blue.50');
+}
+
+.dark {
+  --fc-border-color: theme('colors.gray.700');
+  --fc-button-text-color: theme('colors.gray.100');
+  --fc-button-bg-color: theme('colors.gray.800');
+  --fc-button-border-color: theme('colors.gray.600');
+  --fc-button-hover-bg-color: theme('colors.gray.700');
+  --fc-button-hover-border-color: theme('colors.gray.500');
+  --fc-button-active-bg-color: theme('colors.gray.600');
+  --fc-today-bg-color: theme('colors.blue.900');
+  --fc-page-bg-color: theme('colors.gray.900');
+  --fc-neutral-bg-color: theme('colors.gray.800');
+  --fc-neutral-text-color: theme('colors.gray.100');
+  --fc-event-bg-color: theme('colors.blue.600');
+  --fc-event-border-color: theme('colors.blue.700');
+}
+
+.event-meeting {
+  @apply bg-blue-500 border-blue-600;
+}
+
+.event-task {
+  @apply bg-green-500 border-green-600;
+}
+
+.event-reminder {
+  @apply bg-purple-500 border-purple-600;
+}
+
+.dark .event-meeting {
+  @apply bg-blue-600 border-blue-700;
+}
+
+.dark .event-task {
+  @apply bg-green-600 border-green-700;
+}
+
+.dark .event-reminder {
+  @apply bg-purple-600 border-purple-700;
+}
+
+.dark-mode-event {
+  @apply text-white;
+}
