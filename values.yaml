@@ -1,0 +1,25 @@
+replicaCount: 2
+image:
+  repository: unified-calendar
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: localhost
+      paths:
+        - path: /
+          pathType: Prefix
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+env:
+  VITE_CLIENT_ID: "27c750cd-8d7b-45b1-9dec-c52e444eefc9"
+  VITE_TENANT_ID: "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+  VITE_REDIRECT_URI: "http://localhost"

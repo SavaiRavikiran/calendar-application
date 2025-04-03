@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+        env:
+        - name: VITE_CLIENT_ID
+          value: {{ .Values.env.VITE_CLIENT_ID | quote }}
+        - name: VITE_TENANT_ID
+          value: {{ .Values.env.VITE_TENANT_ID | quote }}
+        - name: VITE_REDIRECT_URI
+          value: {{ .Values.env.VITE_REDIRECT_URI | quote }} 

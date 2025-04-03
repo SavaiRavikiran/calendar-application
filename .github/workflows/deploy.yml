@@ -1,0 +1,104 @@
+name: Deploy Unified Calendar
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig.yaml
+          export KUBECONFIG=kubeconfig.yaml
+
+      - name: Deploy to Kubernetes
+        run: |
+          # Create namespace if it doesn't exist
+          kubectl create namespace calendar-app --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Create values file
+          cat > values.yaml << EOF
+          replicaCount: 2
+          image:
+            repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            tag: ${{ github.sha }}
+            pullPolicy: Always
+          service:
+            type: ClusterIP
+            port: 80
+          ingress:
+            enabled: true
+            hosts:
+              - host: ${{ secrets.INGRESS_HOST }}
+                paths:
+                  - path: /
+                    pathType: Prefix
+            annotations:
+              nginx.ingress.kubernetes.io/rewrite-target: /
+              nginx.ingress.kubernetes.io/ssl-redirect: "false"
+          env:
+            VITE_CLIENT_ID: "${{ secrets.VITE_CLIENT_ID }}"
+            VITE_TENANT_ID: "${{ secrets.VITE_TENANT_ID }}"
+            VITE_REDIRECT_URI: "https://${{ secrets.INGRESS_HOST }}"
+          EOF
+          
+          # Install/upgrade Helm release
+          helm upgrade --install unified-calendar ./charts/unified-calendar \
+            -f values.yaml \
+            -n calendar-app \
+            --set image.tag=${{ github.sha }} 

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unified-calendar
+  namespace: calendar-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: unified-calendar
+  template:
+    metadata:
+      labels:
+        app: unified-calendar
+    spec:
+      containers:
+      - name: unified-calendar
+        image: unified-calendar:latest
+        ports:
+        - containerPort: 80
+        envFrom:
+        - secretRef:
+            name: calendar-app-secrets 
